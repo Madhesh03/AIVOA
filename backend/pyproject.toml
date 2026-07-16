@@ -1,0 +1,55 @@
+[tool.poetry]
+name = "hcp-crm-backend"
+version = "0.1.0"
+description = "AI-First CRM Backend for HCP Interactions"
+authors = ["Your Name <you@example.com>"]
+# Application project (not a distributable library) — disable package install
+# so `poetry install` only resolves dependencies without expecting a package dir.
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.6"
+uvicorn = {version = "^0.34.0", extras = ["standard"]}
+sqlalchemy = "^2.0.36"
+alembic = "^1.14.0"
+asyncpg = "^0.30.0"
+pydantic = "^2.10.4"
+pydantic-settings = "^2.7.0"
+email-validator = "^2.2.0"
+langchain-core = "^0.3.28"
+langchain-groq = "^0.2.3"
+langgraph = "^0.2.60"
+groq = "^0.13.1"
+python-dotenv = "^1.0.1"
+python-multipart = "^0.0.20"
+httpx = "^0.28.1"
+aiosqlite = "^0.20.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^7.4.3"
+pytest-asyncio = "^0.21.1"
+pytest-cov = "^4.1.0"
+black = "^23.12.0"
+isort = "^5.13.2"
+flake8 = "^6.1.0"
+mypy = "^1.7.1"
+httpx = "^0.25.2"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

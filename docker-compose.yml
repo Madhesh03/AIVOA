@@ -1,0 +1,61 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hcp_crm_postgres
+    environment:
+      POSTGRES_USER: hcp_crm
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: hcp_crm_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hcp_crm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hcp_crm_backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://hcp_crm:password@postgres:5432/hcp_crm_db
+      GROQ_API_KEY: ${GROQ_API_KEY:-placeholder-groq-key}
+      GROQ_MODEL: ${GROQ_MODEL:-gemma2-9b-it}
+      DEBUG: ${DEBUG:-false}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      CORS_ORIGINS: '["http://localhost:5173","http://localhost:3000"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/scripts:/app/scripts
+    # Tables are auto-created on startup (lifespan); seed sample data, then serve.
+    command: >
+      sh -c "PYTHONPATH=/app python scripts/seed_db.py &&
+            PYTHONPATH=/app uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hcp_crm_frontend
+    environment:
+      VITE_API_URL: http://localhost:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+    command: npm run dev
+
+volumes:
+  postgres_data:
